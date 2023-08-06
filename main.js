@@ -27,7 +27,7 @@ camera.position.z = 20;
 camera.position.y = 10;
 scene.add(camera);
 
-const renderer = new THREE.WebGLRenderer({canvas});
+const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.shadowMap.enabled = true;
 renderer.render(scene, camera);
