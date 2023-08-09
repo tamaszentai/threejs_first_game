@@ -1,37 +1,29 @@
 import * as THREE from 'three';
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import './style.css';
-import {Player} from "./Player.js";
-import {Floor} from "./Floor.js";
+import {Cube} from "./Cube.js";
 
 const canvas = document.querySelector('.webgl');
 
 const scene = new THREE.Scene();
 
-// const floorGeometry = new THREE.BoxGeometry(20, .1, 200);
-// const floorMaterial = new THREE.MeshStandardMaterial({color: 0xFFFF00});
-const floor = new Floor({width: 20, height: 1, depth: 200})
+const floor = new Cube({width: 20, height: 1, depth: 200, position: {x: 0, y: -1, z: -99}, color: 0xFFFF00})
 floor.receiveShadow = true;
-floor.position.y = -2;
-floor.position.z = -99;
 scene.add(floor);
 
-// const playerGeometry = new THREE.CapsuleGeometry( 1, 1, 32, 64 );
-// const playerMaterial = new THREE.MeshStandardMaterial( {color: 0x184269} );
-const player = new Player({
-    radius: 1, length: 1, capSegments: 32, radialSegments: 64, velocity: {
+
+const player = new Cube({
+    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 0}, color: 0xFFFFFF, velocity: {
         x: 0, y: -0.01, z: 0
     }
-}, floor);
-
+});
 player.castShadow = true;
-
 scene.add(player);
 
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight);
 camera.position.z = 20;
-camera.position.y = 10;
+camera.position.y = 0;
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -72,7 +64,7 @@ window.addEventListener('keydown', (event) => {
 
 function animate() {
     controls.update();
-    player.update();
+    player.update(floor);
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
 }
