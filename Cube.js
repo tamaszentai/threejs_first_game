@@ -26,17 +26,14 @@ export class Cube extends Mesh {
         this.height = height;
         this.depth = depth;
 
-        this.position.x = position.x;
-        this.position.y = position.y;
-        this.position.z = position.z;
+        this.position.set(position.x, position.y, position.z)
 
         this.bottom = this.position.y - this.height / 2;
         this.top = this.position.y + this.height / 2;
 
-        console.log(this.top)
-        console.log(this.bottom)
-
         this.velocity = velocity;
+        this.gravity = -0.005;
+
     }
 
 
@@ -44,13 +41,13 @@ export class Cube extends Mesh {
         this.bottom = this.position.y - this.height / 2;
         this.top = this.position.y + this.height / 2;
 
-        this.velocity.y += 0.01;
+        this.velocity.y += this.gravity;
 
-        this.position.y += this.velocity.y;
-
-        console.log({bottom: this.bottom})
-        console.log({floorTop: floor.top})
-
-        if (this.bottom + this.velocity.y <= floor.top) this.velocity.y = -this.velocity.y;
+        if (this.bottom + this.velocity.y <= floor.top) {
+            this.velocity.y *= 0.8;
+            this.velocity.y = -this.velocity.y;
+        } else {
+            this.position.y += this.velocity.y;
+        }
     }
 }

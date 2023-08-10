@@ -7,19 +7,17 @@ const canvas = document.querySelector('.webgl');
 
 const scene = new THREE.Scene();
 
-const floor = new Cube({width: 20, height: 1, depth: 200, position: {x: 0, y: -1, z: -99}, color: 0xFFFF00})
-floor.receiveShadow = true;
-scene.add(floor);
-
-
 const player = new Cube({
-    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 0}, color: 0xFFFFFF, velocity: {
+    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 4.5}, color: 0xFFFFFF, velocity: {
         x: 0, y: -0.01, z: 0
     }
 });
 player.castShadow = true;
 scene.add(player);
 
+const floor = new Cube({width: 5, height: 0.5, depth: 10, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
+floor.receiveShadow = true;
+scene.add(floor);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight);
 camera.position.z = 20;
@@ -33,7 +31,8 @@ renderer.setClearColor(0xa0c4e0);
 renderer.render(scene, camera);
 
 const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.z = 3;
+light.position.y = 3;
+light.position.z = 2;
 light.castShadow = true;
 scene.add(light);
 
@@ -44,7 +43,7 @@ window.addEventListener('keydown', (event) => {
     console.log(event)
     switch (event.code) {
         case 'KeyW':
-            player.position.z -= 0.2;
+            player.position.z -= 0.1;
             break;
         case 'KeyA':
             player.position.x -= 0.2;
@@ -56,7 +55,7 @@ window.addEventListener('keydown', (event) => {
             player.position.x += 0.2;
             break;
         case 'Space':
-            player.position.y += 0.5;
+            player.position.y = 3;
             break;
     }
 })
@@ -64,8 +63,8 @@ window.addEventListener('keydown', (event) => {
 
 function animate() {
     controls.update();
-    player.update(floor);
     renderer.render(scene, camera);
+    player.update(floor);
     window.requestAnimationFrame(animate);
 }
 
