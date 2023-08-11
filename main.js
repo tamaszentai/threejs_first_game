@@ -39,32 +39,78 @@ scene.add(light);
 
 const controls = new OrbitControls(camera, canvas);
 
+const keys = {
+    w: {
+        pressed: false
+    },
+    a: {
+        pressed: false
+    },
+    s: {
+        pressed: false
+    },
+    d: {
+        pressed: false
+    },
+    space: {
+        pressed: false
+    }
+}
+
 window.addEventListener('keydown', (event) => {
-    console.log(event)
     switch (event.code) {
         case 'KeyW':
-            player.position.z -= 0.1;
+            keys.w.pressed = true;
             break;
         case 'KeyA':
-            player.position.x -= 0.2;
+            keys.a.pressed = true;
             break;
         case 'KeyS':
-            player.position.z += 0.2;
+            keys.s.pressed = true;
             break;
         case 'KeyD':
-            player.position.x += 0.2;
+            keys.d.pressed = true;
             break;
         case 'Space':
-            player.position.y = 3;
+            keys.space.pressed = true;
+            break;
+    }
+})
+
+window.addEventListener('keyup', (event) => {
+    switch (event.code) {
+        case 'KeyW':
+            keys.w.pressed = false;
+            break;
+        case 'KeyA':
+            keys.a.pressed = false;
+            break;
+        case 'KeyS':
+            keys.s.pressed = false;
+            break;
+        case 'KeyD':
+            keys.d.pressed = false;
+            break;
+        case 'Space':
+            keys.space.pressed = false;
             break;
     }
 })
 
 
+
+
 function animate() {
     controls.update();
     renderer.render(scene, camera);
-    player.update(floor);
+    if (keys.w.pressed) player.velocity.z = -0.01;
+    if (keys.a.pressed) player.velocity.x = -0.01;
+    if (keys.s.pressed) player.velocity.z = +0.01;
+    if (keys.d.pressed) player.velocity.x = +0.01;
+
+
+    player.update();
+    player.applyGravity(floor);
     window.requestAnimationFrame(animate);
 }
 
