@@ -8,20 +8,20 @@ const canvas = document.querySelector('.webgl');
 const scene = new THREE.Scene();
 
 const player = new Cube({
-    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 4.5}, color: 0xFFFFFF, velocity: {
+    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
         x: 0, y: -0.01, z: 0
     }
 });
 player.castShadow = true;
 scene.add(player);
 
-const floor = new Cube({width: 5, height: 0.5, depth: 10, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
+const floor = new Cube({width: 10, height: 0.5, depth: 50, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
 floor.receiveShadow = true;
 scene.add(floor);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight);
-camera.position.z = 20;
-camera.position.y = 0;
+camera.position.z = 50;
+camera.position.y = 10;
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -30,9 +30,12 @@ renderer.shadowMap.enabled = true;
 renderer.setClearColor(0xa0c4e0);
 renderer.render(scene, camera);
 
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight)
+
 const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.y = 3;
-light.position.z = 2;
+light.position.y = 2;
+light.position.z = 25;
 light.castShadow = true;
 scene.add(light);
 
@@ -52,9 +55,6 @@ const keys = {
     d: {
         pressed: false
     },
-    space: {
-        pressed: false
-    }
 }
 
 window.addEventListener('keydown', (event) => {
@@ -72,7 +72,7 @@ window.addEventListener('keydown', (event) => {
             keys.d.pressed = true;
             break;
         case 'Space':
-            keys.space.pressed = true;
+            player.velocity.y = 0.2    ;
             break;
     }
 })
@@ -91,24 +91,19 @@ window.addEventListener('keyup', (event) => {
         case 'KeyD':
             keys.d.pressed = false;
             break;
-        case 'Space':
-            keys.space.pressed = false;
-            break;
     }
 })
-
-
 
 
 function animate() {
     controls.update();
     renderer.render(scene, camera);
-    if (keys.w.pressed) player.velocity.z = -0.01;
-    if (keys.a.pressed) player.velocity.x = -0.01;
-    if (keys.s.pressed) player.velocity.z = +0.01;
-    if (keys.d.pressed) player.velocity.x = +0.01;
-
-
+    player.velocity.x = 0;
+    player.velocity.z = 0;
+    if (keys.w.pressed) player.velocity.z = -0.05;
+    if (keys.a.pressed) player.velocity.x = -0.05;
+    if (keys.s.pressed) player.velocity.z = 0.05;
+    if (keys.d.pressed) player.velocity.x = 0.05;
     player.update();
     player.applyGravity(floor);
     window.requestAnimationFrame(animate);

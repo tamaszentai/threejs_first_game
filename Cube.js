@@ -40,15 +40,15 @@ export class Cube extends Mesh {
     update() {
         this.bottom = this.position.y - this.height / 2;
         this.top = this.position.y + this.height / 2;
-        // this.position.x += this.velocity.x;
-        // this.position.z += this.velocity.z;
+        this.position.x += this.velocity.x;
+        this.position.z += this.velocity.z;
     }
 
     applyGravity(floor) {
         this.velocity.y += this.gravity;
 
         if (this.bottom + this.velocity.y <= floor.top) {
-            this.velocity.y *= 0.8;
+            this.velocity.y *= 0.5;
             this.velocity.y = -this.velocity.y;
         } else {
             this.position.y += this.velocity.y;
