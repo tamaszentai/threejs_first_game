@@ -110,21 +110,15 @@ function animate() {
     }
 
     if (Math.abs(player.position.x) > (floor.width / 2 + player.width / 2) || player.bottom < floor.top) {
-        player.velocity.y = -0.15;
+        player.velocity.y = -0.1;
         player.applyFalling();
     }
 
+    if (Math.abs(player.position.z) > (floor.depth / 2 + player.depth / 2) || player.bottom < floor.top) {
+        player.velocity.y = -0.1;
+        player.applyFalling();
+    }
 
-
-    // else if (player.bottom < floor.top) {
-    //     player.velocity.y = -0.15;
-    //     player.applyFalling();
-    // } else {
-    //     player.velocity.y = -0.15;
-    //     player.applyFalling();
-    // }
-    console.log(Math.abs(player.position.x));
-    console.log(floor.width / 2)
     window.requestAnimationFrame(animate);
 }
 
