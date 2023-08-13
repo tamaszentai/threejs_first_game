@@ -16,7 +16,8 @@ export class Cube extends Mesh {
                         x: 0,
                         y: 0,
                         z: 0
-                    }
+                    },
+                    isFalling = false
                 }) {
         super(
             new THREE.BoxGeometry(width, height, depth),
@@ -33,6 +34,7 @@ export class Cube extends Mesh {
 
         this.velocity = velocity;
         this.gravity = -0.005;
+        this.isFalling = isFalling;
 
     }
 
@@ -53,5 +55,9 @@ export class Cube extends Mesh {
         } else {
             this.position.y += this.velocity.y;
         }
+    }
+
+    applyFalling() {
+        this.position.y += this.velocity.y;
     }
 }
