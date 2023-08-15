@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import './style.css';
 import {Cube} from "./Cube.js";
+import { io } from "socket.io-client";
+
+const socket = io("//localhost:3000");
 
 const canvas = document.querySelector('.webgl');
 
@@ -100,7 +103,10 @@ function animate() {
     renderer.render(scene, camera);
     player.velocity.x = 0;
     player.velocity.z = 0;
-    if (keys.w.pressed) player.velocity.z = -0.05;
+    if (keys.w.pressed) {
+        socket.emit('forward', 'forward');
+        player.velocity.z = -0.05;
+    }
     if (keys.a.pressed) player.velocity.x = -0.05;
     if (keys.s.pressed) player.velocity.z = 0.05;
     if (keys.d.pressed) player.velocity.x = 0.05;
