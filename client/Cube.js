@@ -3,6 +3,7 @@ import * as THREE from "three";
 
 export class Cube extends Mesh {
     constructor({
+                    Id,
                     width,
                     height,
                     depth,
@@ -17,12 +18,12 @@ export class Cube extends Mesh {
                         y: 0,
                         z: 0
                     },
-                    isFalling = false
                 }) {
         super(
             new THREE.BoxGeometry(width, height, depth),
             new THREE.MeshStandardMaterial({color: color})
         );
+        this.Id = Id;
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -34,8 +35,6 @@ export class Cube extends Mesh {
 
         this.velocity = velocity;
         this.gravity = -0.005;
-        this.isFalling = isFalling;
-
     }
 
 

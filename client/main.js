@@ -4,13 +4,24 @@ import './style.css';
 import {Cube} from "./Cube.js";
 import { io } from "socket.io-client";
 
+
+let newPlaya;
 const socket = io("//localhost:3000");
+socket.on('message', (arg) => {
+    console.log(arg);
+    newPlaya = new Cube({id: `${arg}`,
+        width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
+            x: 0, y: -0.01, z: 0
+        },})
+
+    scene.add(newPlaya);
+})
 
 const canvas = document.querySelector('.webgl');
 
 const scene = new THREE.Scene();
 
-const player = new Cube({
+const player = new Cube({id: 111,
     width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
         x: 0, y: -0.01, z: 0
     }
@@ -18,7 +29,7 @@ const player = new Cube({
 player.castShadow = true;
 scene.add(player);
 
-const floor = new Cube({width: 10, height: 0.5, depth: 50, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
+const floor = new Cube({id: 555, width: 10, height: 0.5, depth: 50, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
 floor.receiveShadow = true;
 scene.add(floor);
 
