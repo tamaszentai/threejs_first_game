@@ -5,16 +5,16 @@ import {Cube} from "./Cube.js";
 import { io } from "socket.io-client";
 
 
-let newPlaya;
+let newPlayer;
 const socket = io("//localhost:3000");
 socket.on('message', (arg) => {
     console.log(arg);
-    newPlaya = new Cube({id: `${arg}`,
+    newPlayer = new Cube({playerId: arg,
         width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
             x: 0, y: -0.01, z: 0
         },})
-
-    scene.add(newPlaya);
+    newPlayer.castShadow = true;
+    scene.add(newPlayer);
 })
 
 const canvas = document.querySelector('.webgl');
@@ -26,8 +26,15 @@ const player = new Cube({id: 111,
         x: 0, y: -0.01, z: 0
     }
 });
-player.castShadow = true;
-scene.add(player);
+
+if (newPlayer) {
+    newPlayer.castShadow = true;
+    scene.add(newPlayer);
+    console.log(!!newPlayer);
+}
+
+console.log(!!newPlayer);
+
 
 const floor = new Cube({id: 555, width: 10, height: 0.5, depth: 50, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
 floor.receiveShadow = true;
@@ -86,7 +93,7 @@ window.addEventListener('keydown', (event) => {
             keys.d.pressed = true;
             break;
         case 'Space':
-            player.velocity.y = 0.2    ;
+            newPlayer.velocity.y = 0.2    ;
             break;
     }
 })
@@ -109,31 +116,36 @@ window.addEventListener('keyup', (event) => {
 })
 
 
+
+
 function animate() {
     controls.update();
     renderer.render(scene, camera);
-    player.velocity.x = 0;
-    player.velocity.z = 0;
-    if (keys.w.pressed) {
-        socket.emit('forward', 'forward');
-        player.velocity.z = -0.05;
-    }
-    if (keys.a.pressed) player.velocity.x = -0.05;
-    if (keys.s.pressed) player.velocity.z = 0.05;
-    if (keys.d.pressed) player.velocity.x = 0.05;
-    player.update();
-    if (Math.abs(player.position.x) < (floor.width / 2 + player.width / 2)) {
-        player.applyGravity(floor);
-    }
+    if (newPlayer) {
+        console.log(newPlayer)
+        newPlayer.velocity.x = 0;
+        newPlayer.velocity.z = 0;
+        if (keys.w.pressed) {
+            socket.emit('forward', 'forward');
+            newPlayer.velocity.z = -0.05;
+        }
+        if (keys.a.pressed) newPlayer.velocity.x = -0.05;
+        if (keys.s.pressed) newPlayer.velocity.z = 0.05;
+        if (keys.d.pressed) newPlayer.velocity.x = 0.05;
+        newPlayer.update();
+        if (Math.abs(newPlayer.position.x) < (floor.width / 2 + newPlayer.width / 2)) {
+            newPlayer.applyGravity(floor);
+        }
 
-    if (Math.abs(player.position.x) > (floor.width / 2 + player.width / 2) || player.bottom < floor.top) {
-        player.velocity.y = -0.1;
-        player.applyFalling();
-    }
+        if (Math.abs(newPlayer.position.x) > (floor.width / 2 + newPlayer.width / 2) || newPlayer.bottom < floor.top) {
+            newPlayer.velocity.y = -0.1;
+            newPlayer.applyFalling();
+        }
 
-    if (Math.abs(player.position.z) > (floor.depth / 2 + player.depth / 2) || player.bottom < floor.top) {
-        player.velocity.y = -0.1;
-        player.applyFalling();
+        if (Math.abs(newPlayer.position.z) > (floor.depth / 2 + newPlayer.depth / 2) || newPlayer.bottom < floor.top) {
+            newPlayer.velocity.y = -0.1;
+            newPlayer.applyFalling();
+        }
     }
 
     window.requestAnimationFrame(animate);
