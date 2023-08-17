@@ -9,6 +9,7 @@ const io = new Server(httpServer, {
         origin: '*'
     }
 });
+const players = [];
 
 io.on("connection", (socket) => {
     console.log(`connect ${socket.id}`);
@@ -19,8 +20,16 @@ io.on("connection", (socket) => {
         console.log(`disconnect ${socket.id} due to ${reason}`);
     });
 
-    socket.on('forward', (arg) => {
-        console.log(arg);
+    socket.on('player', (player) => {
+        let existingPlayer = players.find((p) => p.playerId === player.playerId);
+        const index = players.indexOf(existingPlayer);
+        if (existingPlayer) {
+            players[index] = player;
+        } else {
+            players.push(player);
+        }
+        console.log(players);
+        socket.emit("updatePlayers", players);
     })
 });
 

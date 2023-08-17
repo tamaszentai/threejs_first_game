@@ -15,7 +15,14 @@ socket.on('message', (arg) => {
         },})
     newPlayer.castShadow = true;
     scene.add(newPlayer);
+    socket.emit('player', newPlayer);
 })
+
+socket.on('updatePlayers', (arg) => {
+    console.log(arg);
+})
+
+
 
 const canvas = document.querySelector('.webgl');
 
@@ -93,7 +100,8 @@ window.addEventListener('keydown', (event) => {
             keys.d.pressed = true;
             break;
         case 'Space':
-            newPlayer.velocity.y = 0.2    ;
+            newPlayer.velocity.y = 0.2;
+            socket.emit('player', newPlayer);
             break;
     }
 })
@@ -122,16 +130,24 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
     if (newPlayer) {
-        console.log(newPlayer)
         newPlayer.velocity.x = 0;
         newPlayer.velocity.z = 0;
         if (keys.w.pressed) {
-            socket.emit('forward', 'forward');
+            socket.emit('player', newPlayer);
             newPlayer.velocity.z = -0.05;
         }
-        if (keys.a.pressed) newPlayer.velocity.x = -0.05;
-        if (keys.s.pressed) newPlayer.velocity.z = 0.05;
-        if (keys.d.pressed) newPlayer.velocity.x = 0.05;
+        if (keys.a.pressed) {
+            socket.emit('player', newPlayer);
+            newPlayer.velocity.x = -0.05;
+        }
+        if (keys.s.pressed) {
+            socket.emit('player', newPlayer);
+            newPlayer.velocity.z = 0.05;
+        }
+        if (keys.d.pressed) {
+            socket.emit('player', newPlayer);
+            newPlayer.velocity.x = 0.05;
+        }
         newPlayer.update();
         if (Math.abs(newPlayer.position.x) < (floor.width / 2 + newPlayer.width / 2)) {
             newPlayer.applyGravity(floor);
