@@ -9,7 +9,9 @@ const io = new Server(httpServer, {
         origin: '*'
     }
 });
-const players = [];
+let players = [{extraData: {
+    playerId: 121212
+    }}];
 
 io.on("connection", (socket) => {
     console.log(`connect ${socket.id}`);
@@ -18,18 +20,19 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", (reason) => {
         console.log(`disconnect ${socket.id} due to ${reason}`);
+        players = players.filter((p) => p.extraData.playerId === socket.id)
+        io.sockets.emit("updatePlayers", players);
+
     });
 
     socket.on('player', (player) => {
-        let existingPlayer = players.find((p) => p.playerId === player.playerId);
-        const index = players.indexOf(existingPlayer);
-        if (existingPlayer) {
-            players[index] = player;
+        const isPlayerExist = !!players.find((p) => p.extraData.playerId === player.extraData.playerId);
+        if (!isPlayerExist) {
+            players.push(player)
         } else {
-            players.push(player);
+            player = players.find((p) => p.extraData.playerId === player.extraData.playerId);
         }
-        console.log(players);
-        socket.emit("updatePlayers", players);
+        io.sockets.emit("updatePlayers", players);
     })
 });
 

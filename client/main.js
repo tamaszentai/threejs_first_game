@@ -2,33 +2,51 @@ import * as THREE from 'three';
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import './style.css';
 import {Cube} from "./Cube.js";
-import { io } from "socket.io-client";
+import {io} from "socket.io-client";
 
 
 let newPlayer;
+let extraData;
 const socket = io("//localhost:3000");
 socket.on('message', (arg) => {
     console.log(arg);
-    newPlayer = new Cube({playerId: arg,
+    newPlayer = new Cube({
+        playerId: arg,
         width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
             x: 0, y: -0.01, z: 0
-        },})
+        },
+    })
     newPlayer.castShadow = true;
     scene.add(newPlayer);
-    socket.emit('player', newPlayer);
+    extraData = {
+        playerId: newPlayer.playerId,
+        velocity: {
+            x: newPlayer.velocity.x,
+            y: newPlayer.velocity.y,
+            z: newPlayer.velocity.z
+        }
+    }
+    socket.emit('player', {material: newPlayer.material.toJSON(), geometry: newPlayer.geometry.toJSON(), extraData});
 })
 
 socket.on('updatePlayers', (arg) => {
-    console.log(arg);
+    arg.forEach((player) => {
+        console.log(player.extraData);
+        if (player.extraData.playerId !== newPlayer.playerId) {
+            scene.add(new Cube({playerId: player.extraData.playerId, width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 0}, color: 0xFFFFFF, velocity: {
+                    x: 0, y: -0.01, z: 0}
+                }))
+        }
+    })
 })
-
 
 
 const canvas = document.querySelector('.webgl');
 
 const scene = new THREE.Scene();
 
-const player = new Cube({id: 111,
+const player = new Cube({
+    id: 111,
     width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
         x: 0, y: -0.01, z: 0
     }
@@ -101,7 +119,7 @@ window.addEventListener('keydown', (event) => {
             break;
         case 'Space':
             newPlayer.velocity.y = 0.2;
-            socket.emit('player', newPlayer);
+            // socket.emit('player', newPlayer);
             break;
     }
 })
@@ -124,8 +142,6 @@ window.addEventListener('keyup', (event) => {
 })
 
 
-
-
 function animate() {
     controls.update();
     renderer.render(scene, camera);
@@ -133,19 +149,19 @@ function animate() {
         newPlayer.velocity.x = 0;
         newPlayer.velocity.z = 0;
         if (keys.w.pressed) {
-            socket.emit('player', newPlayer);
             newPlayer.velocity.z = -0.05;
+            socket.emit('player', {material: newPlayer.material.toJSON(), geometry: newPlayer.geometry.toJSON(), extraData});
         }
         if (keys.a.pressed) {
-            socket.emit('player', newPlayer);
+            // socket.emit('player', newPlayer);
             newPlayer.velocity.x = -0.05;
         }
         if (keys.s.pressed) {
-            socket.emit('player', newPlayer);
+            // socket.emit('player', newPlayer);
             newPlayer.velocity.z = 0.05;
         }
         if (keys.d.pressed) {
-            socket.emit('player', newPlayer);
+            // socket.emit('player', newPlayer);
             newPlayer.velocity.x = 0.05;
         }
         newPlayer.update();
