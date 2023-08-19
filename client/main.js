@@ -5,61 +5,68 @@ import {Cube} from "./Cube.js";
 import {io} from "socket.io-client";
 
 
-let newPlayer;
+let player;
+let playerId;
 let extraData;
 const socket = io("//localhost:3000");
 socket.on('message', (arg) => {
     console.log(arg);
-    newPlayer = new Cube({
-        playerId: arg,
-        width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
-            x: 0, y: -0.01, z: 0
-        },
-    })
-    newPlayer.castShadow = true;
-    scene.add(newPlayer);
+    if (arg === 'full') return;
+    playerId = arg;
     extraData = {
-        playerId: newPlayer.playerId,
-        velocity: {
-            x: newPlayer.velocity.x,
-            y: newPlayer.velocity.y,
-            z: newPlayer.velocity.z
-        }
+        playerId: playerId,
     }
-    socket.emit('player', {material: newPlayer.material.toJSON(), geometry: newPlayer.geometry.toJSON(), extraData});
+    socket.emit('player', {extraData});
 })
 
-socket.on('updatePlayers', (arg) => {
-    arg.forEach((player) => {
-        console.log(player.extraData);
-        if (player.extraData.playerId !== newPlayer.playerId) {
-            scene.add(new Cube({playerId: player.extraData.playerId, width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 0}, color: 0xFFFFFF, velocity: {
-                    x: 0, y: -0.01, z: 0}
-                }))
+
+socket.on('updatePlayers', (players) => {
+    console.log(players)
+    const playerIndex = players.findIndex((p) => p.extraData.playerId === playerId)
+    console.log(playerIndex)
+    if (playerIndex === 0) {
+        player = new Cube({
+            playerId: playerId,
+            width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
+                x: 0, y: -0.01, z: 0
+            },
+        })
+        player.castShadow = true;
+        scene.add(player);
+        extraData.velocity = {
+            x: player.velocity.x, y: player.velocity.y,
+            z: player.velocity.z
         }
-    })
-})
+        socket.emit('updatePlayers', {
+            material: player.material.toJSON(),
+            geometry: player.geometry.toJSON(),
+            extraData: extraData
+        })
+    }
+    if (playerIndex === 1) {
+        player = new Cube({
+            playerId: playerId,
+            width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: -24.5}, color: 0xFFFFFF, velocity: {
+                x: 0, y: -0.01, z: 0
+            },
+        })
+        player.castShadow = true;
+        scene.add(player);
+        extraData.velocity = {
+            x: player.velocity.x, y: player.velocity.y,
+            z: player.velocity.z
+        }
+        socket.emit('updatePlayers', {
+            material: player.material.toJSON(),
+            geometry: player.geometry.toJSON(),
+            extraData: extraData
+        })
+    }
 
+})
 
 const canvas = document.querySelector('.webgl');
-
 const scene = new THREE.Scene();
-
-const player = new Cube({
-    id: 111,
-    width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
-        x: 0, y: -0.01, z: 0
-    }
-});
-
-if (newPlayer) {
-    newPlayer.castShadow = true;
-    scene.add(newPlayer);
-    console.log(!!newPlayer);
-}
-
-console.log(!!newPlayer);
-
 
 const floor = new Cube({id: 555, width: 10, height: 0.5, depth: 50, position: {x: 0, y: -2, z: 0}, color: 0xFFFF00})
 floor.receiveShadow = true;
@@ -118,8 +125,8 @@ window.addEventListener('keydown', (event) => {
             keys.d.pressed = true;
             break;
         case 'Space':
-            newPlayer.velocity.y = 0.2;
-            // socket.emit('player', newPlayer);
+            player.velocity.y = 0.2;
+            // socket.emit('player', player);
             break;
     }
 })
@@ -145,38 +152,38 @@ window.addEventListener('keyup', (event) => {
 function animate() {
     controls.update();
     renderer.render(scene, camera);
-    if (newPlayer) {
-        newPlayer.velocity.x = 0;
-        newPlayer.velocity.z = 0;
+    if (player) {
+        player.velocity.x = 0;
+        player.velocity.z = 0;
         if (keys.w.pressed) {
-            newPlayer.velocity.z = -0.05;
-            socket.emit('player', {material: newPlayer.material.toJSON(), geometry: newPlayer.geometry.toJSON(), extraData});
+            player.velocity.z = -0.05;
         }
         if (keys.a.pressed) {
-            // socket.emit('player', newPlayer);
-            newPlayer.velocity.x = -0.05;
+            // socket.emit('player', player);
+            player.velocity.x = -0.05;
         }
         if (keys.s.pressed) {
-            // socket.emit('player', newPlayer);
-            newPlayer.velocity.z = 0.05;
+            // socket.emit('player', player);
+            player.velocity.z = 0.05;
         }
         if (keys.d.pressed) {
-            // socket.emit('player', newPlayer);
-            newPlayer.velocity.x = 0.05;
+            // socket.emit('player', player);
+            player.velocity.x = 0.05;
         }
-        newPlayer.update();
-        if (Math.abs(newPlayer.position.x) < (floor.width / 2 + newPlayer.width / 2)) {
-            newPlayer.applyGravity(floor);
+        player.update();
+
+        if (Math.abs(player.position.x) < (floor.width / 2 + player.width / 2)) {
+            player.applyGravity(floor);
         }
 
-        if (Math.abs(newPlayer.position.x) > (floor.width / 2 + newPlayer.width / 2) || newPlayer.bottom < floor.top) {
-            newPlayer.velocity.y = -0.1;
-            newPlayer.applyFalling();
+        if (Math.abs(player.position.x) > (floor.width / 2 + player.width / 2) || player.bottom < floor.top) {
+            player.velocity.y = -0.1;
+            player.applyFalling();
         }
 
-        if (Math.abs(newPlayer.position.z) > (floor.depth / 2 + newPlayer.depth / 2) || newPlayer.bottom < floor.top) {
-            newPlayer.velocity.y = -0.1;
-            newPlayer.applyFalling();
+        if (Math.abs(player.position.z) > (floor.depth / 2 + player.depth / 2) || player.bottom < floor.top) {
+            player.velocity.y = -0.1;
+            player.applyFalling();
         }
     }
 

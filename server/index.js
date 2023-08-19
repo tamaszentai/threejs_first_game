@@ -9,31 +9,57 @@ const io = new Server(httpServer, {
         origin: '*'
     }
 });
-let players = [{extraData: {
-    playerId: 121212
-    }}];
+let players = [];
 
 io.on("connection", (socket) => {
-    console.log(`connect ${socket.id}`);
+    if (players.length >= 2) {
+        socket.emit("message", 'full')
+        socket.disconnect(true);
+    }
 
+    console.log(`connect ${socket.id}`);
     socket.emit("message", socket.id);
 
     socket.on("disconnect", (reason) => {
         console.log(`disconnect ${socket.id} due to ${reason}`);
-        players = players.filter((p) => p.extraData.playerId === socket.id)
-        io.sockets.emit("updatePlayers", players);
-
+        players = players.filter((p) => p.extraData.playerId !== socket.id)
+        console.log({length: players.length});
+        io.sockets.emit("updatePlayers", players.length);
     });
 
     socket.on('player', (player) => {
-        const isPlayerExist = !!players.find((p) => p.extraData.playerId === player.extraData.playerId);
-        if (!isPlayerExist) {
-            players.push(player)
-        } else {
-            player = players.find((p) => p.extraData.playerId === player.extraData.playerId);
+        if (players.length === 0) {
+            const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
+            if (existingPlayerIndex !== -1) {
+                players[existingPlayerIndex] = player;
+            } else {
+                players[0] = player;
+            }
         }
+
+        if (players.length === 1) {
+            const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
+            if (existingPlayerIndex !== -1) {
+                players[existingPlayerIndex] = player;
+            } else {
+                players[1] = player;
+            }
+        }
+
+
+        // if (players.length < 2) {
+        //     const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
+        //     if (existingPlayerIndex !== -1) {
+        //         players[existingPlayerIndex] = player;
+        //     } else {
+        //         players.push(player);
+        //     }
+        // } else {
+        //     socket.disconnect()
+        // }
+
         io.sockets.emit("updatePlayers", players);
-    })
+    });
 });
 
 httpServer.listen(3000);
