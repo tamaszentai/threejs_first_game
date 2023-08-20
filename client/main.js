@@ -7,62 +7,55 @@ import {io} from "socket.io-client";
 
 let player;
 let playerId;
+let opponentId;
+let opponent;
 let extraData;
 const socket = io("//localhost:3000");
-socket.on('message', (arg) => {
-    console.log(arg);
-    if (arg === 'full') return;
-    playerId = arg;
+socket.on('getSocketId', (socketId) => {
+    console.log({socketId});
+    if (socketId === 'full') return;
+    playerId = socketId;
+    player = new Cube({
+        playerId: playerId,
+        width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
+            x: 0, y: -0.01, z: 0
+        },
+    });
     extraData = {
         playerId: playerId,
+        velocity: player.velocity
     }
-    socket.emit('player', {extraData});
+    socket.emit('registerPlayer', {extraData, ...player.toJSON()});
+    scene.add(player);
+})
+
+socket.on('disconnectedPlayer', playerId => {
+    if (playerId === opponentId) {
+        scene.remove(opponent);
+        opponentId = null;
+        opponent = null;
+
+    }
 })
 
 
 socket.on('updatePlayers', (players) => {
-    console.log(players)
-    const playerIndex = players.findIndex((p) => p.extraData.playerId === playerId)
-    console.log(playerIndex)
-    if (playerIndex === 0) {
-        player = new Cube({
-            playerId: playerId,
-            width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: 24.5}, color: 0xFFFFFF, velocity: {
-                x: 0, y: -0.01, z: 0
-            },
-        })
-        player.castShadow = true;
-        scene.add(player);
-        extraData.velocity = {
-            x: player.velocity.x, y: player.velocity.y,
-            z: player.velocity.z
+    if (players) {
+        for (let player of players) {
+            if (player.extraData.playerId !== playerId) {
+                opponentId = player.extraData.playerId
+                if (!opponent) {
+                    opponent = new Cube({
+                        playerId: opponentId,
+                        width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: -24.5}, color: 0xFFFFFF, velocity: {
+                            x: 0, y: -0.01, z: 0
+                        },
+                    });
+                    scene.add(opponent);
+                }
+            }
         }
-        socket.emit('updatePlayers', {
-            material: player.material.toJSON(),
-            geometry: player.geometry.toJSON(),
-            extraData: extraData
-        })
     }
-    if (playerIndex === 1) {
-        player = new Cube({
-            playerId: playerId,
-            width: 1, height: 1, depth: 1, position: {x: 0, y: 0, z: -24.5}, color: 0xFFFFFF, velocity: {
-                x: 0, y: -0.01, z: 0
-            },
-        })
-        player.castShadow = true;
-        scene.add(player);
-        extraData.velocity = {
-            x: player.velocity.x, y: player.velocity.y,
-            z: player.velocity.z
-        }
-        socket.emit('updatePlayers', {
-            material: player.material.toJSON(),
-            geometry: player.geometry.toJSON(),
-            extraData: extraData
-        })
-    }
-
 })
 
 const canvas = document.querySelector('.webgl');
@@ -126,7 +119,6 @@ window.addEventListener('keydown', (event) => {
             break;
         case 'Space':
             player.velocity.y = 0.2;
-            // socket.emit('player', player);
             break;
     }
 })
@@ -159,18 +151,32 @@ function animate() {
             player.velocity.z = -0.05;
         }
         if (keys.a.pressed) {
-            // socket.emit('player', player);
             player.velocity.x = -0.05;
         }
         if (keys.s.pressed) {
-            // socket.emit('player', player);
             player.velocity.z = 0.05;
         }
         if (keys.d.pressed) {
-            // socket.emit('player', player);
             player.velocity.x = 0.05;
         }
         player.update();
+        if (opponent) {
+            opponent.update();
+            if (Math.abs(opponent.position.x) < (floor.width / 2 + opponent.width / 2)) {
+                opponent.applyGravity(floor);
+            }
+
+            if (Math.abs(player.position.x) > (floor.width / 2 + opponent.width / 2) || opponent.bottom < floor.top) {
+                opponent.velocity.y = -0.1;
+                opponent.applyFalling();
+            }
+
+            if (Math.abs(player.position.z) > (floor.depth / 2 + opponent.depth / 2) || opponent.bottom < floor.top) {
+                opponent.velocity.y = -0.1;
+                opponent.applyFalling();
+            }
+        }
+
 
         if (Math.abs(player.position.x) < (floor.width / 2 + player.width / 2)) {
             player.applyGravity(floor);

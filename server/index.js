@@ -13,51 +13,28 @@ let players = [];
 
 io.on("connection", (socket) => {
     if (players.length >= 2) {
-        socket.emit("message", 'full')
+        socket.emit("getSocketId", 'full')
         socket.disconnect(true);
     }
 
-    console.log(`connect ${socket.id}`);
-    socket.emit("message", socket.id);
+    console.log(`connected ${socket.id}`);
+    socket.emit("getSocketId", socket.id);
 
     socket.on("disconnect", (reason) => {
         console.log(`disconnect ${socket.id} due to ${reason}`);
         players = players.filter((p) => p.extraData.playerId !== socket.id)
         console.log({length: players.length});
-        io.sockets.emit("updatePlayers", players.length);
+        io.sockets.emit("disconnectedPlayer", socket.id);
     });
 
-    socket.on('player', (player) => {
-        if (players.length === 0) {
-            const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
-            if (existingPlayerIndex !== -1) {
-                players[existingPlayerIndex] = player;
-            } else {
-                players[0] = player;
-            }
+
+    socket.on('registerPlayer', (player) => {
+        console.log({registeredPlayer: player.extraData.playerId});
+        const isPlayerExists = !!players.find((p) => p.extraData.playerId === player.extraData.playerId)
+        if (!isPlayerExists && players.length < 3) {
+            players.push(player);
         }
-
-        if (players.length === 1) {
-            const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
-            if (existingPlayerIndex !== -1) {
-                players[existingPlayerIndex] = player;
-            } else {
-                players[1] = player;
-            }
-        }
-
-
-        // if (players.length < 2) {
-        //     const existingPlayerIndex = players.findIndex((p) => p.extraData.playerId === player.extraData.playerId);
-        //     if (existingPlayerIndex !== -1) {
-        //         players[existingPlayerIndex] = player;
-        //     } else {
-        //         players.push(player);
-        //     }
-        // } else {
-        //     socket.disconnect()
-        // }
-
+        console.log(players.length)
         io.sockets.emit("updatePlayers", players);
     });
 });
