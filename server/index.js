@@ -40,9 +40,11 @@ io.on("connection", (socket) => {
 
     socket.on('updatePlayer', (player) => {
         io.sockets.emit('broadcastMoves', player)
+        console.log(player);
     })
     socket.on('updateOpponent', (opponent) => {
         io.sockets.emit('broadcastMoves', opponent)
+        console.log(opponent);
     })
 });
 

@@ -176,11 +176,7 @@ function animate() {
       player.applyFalling();
     }
     player.update();
-    socket.emit('updatePlayer', player);
-    socket.on('broadcastMoves', (arg) => {
-      console.log(arg.object.uuid);
-    })
-
+    socket.emit('updatePlayer', {Id: playerId, position: player.position});
   }
   if (opponent) {
 
@@ -198,11 +194,13 @@ function animate() {
       opponent.applyFalling();
     }
     opponent.update();
-    socket.emit('updateOpponent', opponent);
+    socket.emit('updatePlayer', {Id: opponentId, position: opponent.position});
   }
-  // socket.on('broadcastMoves', (arg) => {
-  //   console.log(arg);
-  // })
+  socket.on('broadcastMoves', (arg) => {
+    if (arg.Id === opponentId) {
+      // opponent.position = arg.position
+    }
+  })
   window.requestAnimationFrame(animate);
 }
 
