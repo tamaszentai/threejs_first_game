@@ -37,6 +37,13 @@ io.on("connection", (socket) => {
         console.log(players.length)
         io.sockets.emit("updatePlayers", players);
     });
+
+    socket.on('updatePlayer', (player) => {
+        io.sockets.emit('broadcastMoves', player)
+    })
+    socket.on('updateOpponent', (opponent) => {
+        io.sockets.emit('broadcastMoves', opponent)
+    })
 });
 
 httpServer.listen(3000);
